@@ -1,0 +1,57 @@
+mongock:
+  migration-scan-package:
+    - com.timurisachenko.chat.authservice.config.dbmigrations
+spring:
+  application:
+    name: auth-service
+  mvc:
+    throw-exception-if-no-handler-found: true
+  data:
+    mongodb:
+      database: chat_auth
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          configuration:
+            key:
+              serializer: org.apache.kafka.common.serialization.StringSerializer
+      bindings:
+        momentsUserChanged:
+          destination: moments.user.changed
+          contentType: application/json
+  mongodb:
+    embedded:
+      version: 3.5.5
+  web:
+    resources:
+      add-mappings: false
+server:
+  port: 8763
+  servlet:
+    encoding:
+      force: true
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+security:
+  basic:
+    enable: false
+  jwt:
+    uri: /auth/**
+    header: Authorization
+    prefix: Bearer
+    expiration: 86400
+    secret: JwtSecretKey
+  authentication:
+    jwt:
+      # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+      base64-secret: ZGVmZTVhYWI0MjdiNDNkY2Q4OTA1YWU4ZTkzZjUwYzVjN2U4NDQxZmQzYjMxM2MwMGQyN2UxNTg2OGMwZGViZjBhYzU0OGI1YTI2ZmYyNDQ2M2JkMjdlYTlkMDllNGM3ZDE1ZDkwOWRjMjMxNWIzMGZmMjQ4YTEyODRlNjRmZDM=
+      # Token is valid 24 hours
+      token-validity-in-seconds: 86400
+      token-validity-in-seconds-for-remember-me: 2592000
+  service:
+    username: d245ef53-5ad5-4216-9c56-89fe0f8302a0
+    password: ef919ae4-b893-4969-b782-57978180ad33

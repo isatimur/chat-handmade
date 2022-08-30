@@ -1,0 +1,109 @@
+server:
+  port: 8762
+eureka:
+  client:
+    service-url:
+      default-zone: ${EUREKA_URI:http://localhost:8761/eureka}
+    healthcheck:
+      enabled: true
+    refresh:
+      enable: true
+    instance:
+      prefer-ip-address: true
+reactive:
+  feign:
+    circuit:
+      breaker:
+        enabled: true
+logging:
+  level:
+    org.springframework.cloud.gateway.rsocket: DEBUG
+security:
+  basic:
+    enable: false
+  jwt:
+    uri: /auth/**
+    header: Authorization
+    prefix: Bearer
+    expiration: 86400
+    secret: JwtSecretKey
+  authentication:
+    jwt:
+      # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+      base64-secret: ZGVmZTVhYWI0MjdiNDNkY2Q4OTA1YWU4ZTkzZjUwYzVjN2U4NDQxZmQzYjMxM2MwMGQyN2UxNTg2OGMwZGViZjBhYzU0OGI1YTI2ZmYyNDQ2M2JkMjdlYTlkMDllNGM3ZDE1ZDkwOWRjMjMxNWIzMGZmMjQ4YTEyODRlNjRmZDM=
+      # Token is valid 24 hours
+      token-validity-in-seconds: 86400
+      token-validity-in-seconds-for-remember-me: 2592000
+jhipster:
+  clientApp:
+    name: 'gateway'
+  mail:
+    from: gateway@localhost
+  api-docs:
+    default-include-pattern: ${server.servlet.context-path:}/api/**
+    management-include-pattern: ${server.servlet.context-path:}/management/**
+    title: Gateway API
+    description: Gateway API documentation
+    version: 0.0.1
+    terms-of-service-url:
+    contact-name:
+    contact-url:
+    contact-email:
+    license: unlicensed
+    license-url:
+  security:
+    content-security-policy: "default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:"
+spring:
+  application:
+    name: chat-gateway
+  cloud:
+    gateway:
+      httpclient:
+        pool:
+          max-connections: 1000
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins: '*'
+            allowedHeaders: '*'
+            allowedMethods: '*'
+
+      rsocket:
+      - id: gateway1
+        route-id: 11
+        service-name: chat-gateway
+      routes:
+      - id: auth-service
+        uri: lb://auth-service
+        predicates:
+        - Path=/api/**
+
+#      default-filters:
+#      - TokenRelay
+#        auth-service:
+#          path: /auth/**, /users/**, /actuator
+#          service-id: auth-service
+#          sensitive-headers: Cookie,Set-Cookie
+management:
+  endpoint:
+    gateway:
+      enabled: true # default value
+    web:
+      exposure:
+        include: gateway
+---
+spring:
+  profiles: gateway2
+  rsocket:
+    server:
+      port: 7003
+  cloud:
+    gateway:
+      rsocket:
+        id: gateway2
+        route-id: 12
+        service-name: gateway
+        brokers:
+          - host: localhost
+            port: 7002
